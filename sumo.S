@@ -1,7 +1,7 @@
 ; Informacion
 ; Proyecto: minisumo
 ; Autor:    Fabian Marquez Montes
-; Fecha:    27-03-2024
+; Fecha:    Marzo 2024
 ;
 ; Hardware: 1 HC-SR04, 2 CNY70, 1 L293D
 ;
@@ -114,13 +114,13 @@ SETUP:
 
 LOOP:
     BTFSS FLAG_REG, IS_ACTIVE
-    GOTO LOOP
+    GOTO LOOP ; si no esta activo
 
-    BCF PORTA, LED
-
+    ; revisar estado sensores
     CALL DETECTS_OPPONENT
     CALL DETECTS_BORDER
 
+    ; toma de decisiones
     CALL SPIN
     BTFSS FLAG_REG, ENEMY
     CALL FORWARD
@@ -179,6 +179,7 @@ DETECTS_OPPONENT:
     BTFSC PORTB, ECHO
     BSF FLAG_REG, ENEMY
     
+    ; encender LED si detecta
     BCF PORTB, LED
     BTFSS FLAG_REG, ENEMY
     BSF PORTB, LED
