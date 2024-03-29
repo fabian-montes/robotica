@@ -67,6 +67,7 @@ INTERRUPT:
 
 DEACTIVATE:
     BSF PORTB, LED
+    CALL STOP
     RETURN
 
 ACTIVATE:
@@ -119,56 +120,65 @@ LOOP:
 
     CALL DETECTS_OPPONENT
 
-    CALL GIRAR
+    CALL SPIN
     BTFSS FLAG_REG, ENEMY
-    CALL AVANZAR
+    CALL FORWARD
 
     MOVLW 1
     CALL DELAY
     GOTO LOOP
 
-AVANZAR:
+FORWARD:
     BSF PORTB, IN1
     BCF PORTB, IN2
     BSF PORTB, IN3
     BCF PORTB, IN4
     RETURN
 
-GIRAR:
+SPIN:
     BSF PORTB, IN1
     BCF PORTB, IN2
     BCF PORTB, IN3
     BSF PORTB, IN4
     RETURN
 
+STOP:
+    BCF PORTB, IN1
+    BCF PORTB, IN2
+    BCF PORTB, IN3
+    BCF PORTB, IN4
+
 DETECTS_OPPONENT:
-        BCF FLAG_REG, ENEMY
+    BCF FLAG_REG, ENEMY
 
-        ; puslo de activacion
-        BSF PORTB, TRIG
-        MOVLW 254 ; delay_10us
-        MOVWF TMR0
-        BCF T0IF
-        BTFSS T0IF
-        GOTO $-1
-        BCF PORTB, TRIG
+    ; puslo de activacion
+    BSF PORTB, TRIG
+    MOVLW 254 ; delay_10us
+    MOVWF TMR0
+    BCF T0IF
+    BTFSS T0IF
+    GOTO $-1
+    BCF PORTB, TRIG
 
-        ; esperar lectura
-        BTFSS PORTB, ECHO
-        GOTO $-1
+    ; esperar lectura
+    BTFSS PORTB, ECHO
+    GOTO $-1
 
-        ; tiempo maximo de respuesta
-        MOVLW 180
-        MOVWF TMR0
-        BCF T0IF
-        BTFSS T0IF
-        GOTO $-1
+    ; tiempo maximo de respuesta
+    MOVLW 180
+    MOVWF TMR0
+    BCF T0IF
+    BTFSS T0IF
+    GOTO $-1
 
-        ; dentro de rango
-        BTFSC PORTB, ECHO
-        BSF FLAG_REG, ENEMY
+    ; dentro de rango
+    BTFSC PORTB, ECHO
+    BSF FLAG_REG, ENEMY
 
-        RETURN
+    RETURN
+
+DETECTS_BORDER:
+    RETURN
 
 DELAY:
     MOVWF AUX
