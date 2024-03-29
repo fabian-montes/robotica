@@ -51,18 +51,15 @@ INTERRUPT:
     RETFIE
 
 SETUP:
-    ; bank1
     BCF RP1
-    BSF RP0
-
+    
+    BSF RP0 ; bank1
     MOVLW 0b00000000
     MOVWF TRISB
     MOVLW 0b00000000
     MOVWF TRISA
 
-    ; bank0
-    BCF RP1
-    BCF RP0
+    BCF RP0 ; bank0
 
     CLRF PORTA
     CLRF PORTB
@@ -70,6 +67,29 @@ SETUP:
     GOTO LOOP
 
 LOOP:
+    MOVLW 3
+    CALL DELAY
+    BCF PORTB, LED
+    
+    MOVLW 7
+    CALL DELAY
+    BSF PORTB, LED
     GOTO LOOP
+
+DELAY:
+    MOVWF AUX
+    BSF RP0 ; bank1
+    CLRWDT
+    MOVLW 0b00000111
+    MOVWF OPTION_REG
+    BCF RP0 ; bank0
+SUB_DELAY:
+    CLRF TMR0
+    BCF T0IF
+    BTFSS T0IF
+    GOTO $-1
+    DECFSZ AUX
+    GOTO SUB_DELAY
+    RETURN
 
 END RESET_VECTOR
