@@ -49,6 +49,9 @@ RESET_VECTOR:
 
 ORG 0x04
 INTERRUPT:
+    BTFSC PORTB, PUSH
+    GOTO $-1
+
     BTFSS FLAG_REG, IS_ACTIVE
     CALL ACTIVATE
 
@@ -96,7 +99,7 @@ SETUP:
     MOVWF OPTION_REG
     MOVLW 0b10010000 ; GIE, INTE
     MOVWF INTCON
-    MOVLW 0b00000001
+    MOVLW 0b00000101
     MOVWF TRISB
     MOVLW 0b00000000
     MOVWF TRISA
@@ -108,14 +111,55 @@ SETUP:
     GOTO LOOP
 
 LOOP:
+    BTFSS FLAG_REG, IS_ACTIVE
     GOTO LOOP
+
+    BCF PORTA, LED
+
+    CALL DETECTS_OPPONENT
+
+    BTFSC FLAG_REG, ENEMY
+    BSF PORTA, LED
+
+    MOVLW 1
+    CALL DELAY
+    GOTO LOOP
+
+DETECTS_OPPONENT:
+        BCF FLAG_REG, ENEMY
+
+        ; puslo de activacion
+        BSF PORTB, TRIG
+        MOVLW 254 ; delay_10us
+        MOVWF TMR0
+        BCF T0IF
+        BTFSS T0IF
+        GOTO $-1
+        BCF PORTB, TRIG
+
+        ; esperar lectura
+        BTFSS PORTB, ECHO
+        GOTO $-1
+
+        ; tiempo maximo de respuesta
+        MOVLW 180
+        MOVWF TMR0
+        BCF T0IF
+        BTFSS T0IF
+        GOTO $-1
+
+        ; dentro de rango
+        BTFSC PORTB, ECHO
+        BSF FLAG_REG, ENEMY
+
+        RETURN
 
 DELAY:
     MOVWF AUX
     BSF RP0 ; bank1
-    ;CLRWDT
-    ;MOVLW 0b11000111
-    ;MOVWF OPTION_REG
+    CLRWDT
+    MOVLW 0b11000111
+    MOVWF OPTION_REG
     BCF RP0 ; bank0
 SUB_DELAY:
     CLRF TMR0
@@ -124,6 +168,12 @@ SUB_DELAY:
     GOTO $-1
     DECFSZ AUX
     GOTO SUB_DELAY
+
+    BSF RP0 ; bank1
+    CLRWDT
+    MOVLW 0b11000011
+    MOVWF OPTION_REG
+    BCF RP0 ; bank0
     RETURN
 
 END RESET_VECTOR
