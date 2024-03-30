@@ -18,19 +18,14 @@ global RESET_VECTOR
 CONFIG FOSC = INTOSCIO, WDTE = OFF, PWRTE = OFF, MCLRE = OFF, BOREN = OFF, LVP = OFF
 
 ; mapeado de pines
-; PORTA
-IR_RIGHT EQU 0
-IR_LEFT EQU 1
-
-; PORTB
-PUSH EQU 0
-TRIG EQU 1
-ECHO EQU 2
-LED EQU 3
-IN1 EQU 4
-IN2 EQU 5
-IN3 EQU 6
-IN4 EQU 7
+#define PUSH BANKMASK(PORTB), 0
+#define TRIG BANKMASK(PORTB), 1
+#define ECHO BANKMASK(PORTB), 2
+#define LED BANKMASK(PORTB), 3
+#define IN1 BANKMASK(PORTB), 4
+#define IN2 BANKMASK(PORTB), 5
+#define IN3 BANKMASK(PORTB), 6
+#define IN4 BANKMASK(PORTB), 7
 
 ; asignacion de memoria
 FLAG_REG EQU 0x21
@@ -49,7 +44,7 @@ RESET_VECTOR:
 
 ORG 0x04
 INTERRUPT:
-    BTFSC PORTB, PUSH
+    BTFSC PUSH
     GOTO $-1
 
     BTFSS FLAG_REG, IS_ACTIVE
@@ -66,7 +61,7 @@ INTERRUPT:
     RETFIE
 
 DEACTIVATE:
-    BSF PORTB, LED
+    BSF LED
     CALL STOP
     RETURN
 
@@ -74,17 +69,17 @@ ACTIVATE:
     MOVLW 3 ; secs
     MOVWF COUNTER
 ONE_SEC:
-    BCF PORTB, LED
+    BCF LED
     MOVLW 7
     CALL DELAY
     
-    BSF PORTB, LED
+    BSF LED
     MOVLW 3
     CALL DELAY
     DECFSZ COUNTER
     GOTO ONE_SEC
 
-    BCF PORTB, LED
+    BCF LED
     RETURN
 
 SETUP:
@@ -109,7 +104,7 @@ SETUP:
     ; two common reference comparators with outputs CM<2:0>=110
     MOVLW 0b00000110
     MOVWF CMCON
-    BSF PORTB, LED
+    BSF LED
     GOTO LOOP
 
 LOOP:
@@ -132,40 +127,40 @@ LOOP:
     GOTO LOOP
 
 FORWARD:
-    BSF PORTB, IN1
-    BCF PORTB, IN2
-    BSF PORTB, IN3
-    BCF PORTB, IN4
+    BSF IN1
+    BCF IN2
+    BSF IN3
+    BCF IN4
     RETURN
 
 SPIN:
-    BSF PORTB, IN1
-    BCF PORTB, IN2
-    BCF PORTB, IN3
-    BSF PORTB, IN4
+    BSF IN1
+    BCF IN2
+    BCF IN3
+    BSF IN4
     RETURN
 
 STOP:
-    BCF PORTB, IN1
-    BCF PORTB, IN2
-    BCF PORTB, IN3
-    BCF PORTB, IN4
+    BCF IN1
+    BCF IN2
+    BCF IN3
+    BCF IN4
     RETURN
 
 DETECTS_OPPONENT:
     BCF FLAG_REG, ENEMY
 
     ; puslo de activacion
-    BSF PORTB, TRIG
+    BSF TRIG
     MOVLW 254 ; delay_10us
     MOVWF TMR0
     BCF T0IF
     BTFSS T0IF
     GOTO $-1
-    BCF PORTB, TRIG
+    BCF TRIG
 
     ; esperar lectura
-    BTFSS PORTB, ECHO
+    BTFSS ECHO
     GOTO $-1
 
     ; tiempo maximo de respuesta
@@ -176,13 +171,13 @@ DETECTS_OPPONENT:
     GOTO $-1
 
     ; dentro de rango
-    BTFSC PORTB, ECHO
+    BTFSC ECHO
     BSF FLAG_REG, ENEMY
     
     ; encender LED si detecta
-    BCF PORTB, LED
+    BCF LED
     BTFSS FLAG_REG, ENEMY
-    BSF PORTB, LED
+    BSF LED
 
     RETURN
 
