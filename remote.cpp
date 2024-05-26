@@ -14,16 +14,19 @@
   https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/WiFiAccessPoint/WiFiAccessPoint.ino
   https://github.com/espressif/arduino-esp32/blob/master/cores/esp32/Client.h
   https://www.upesy.com/blogs/tutorials/esp32-pinout-reference-gpio-pins-ultimate-guide#
+  https://www.youtube.com/watch?v=laHXQoIRiUw
 */
 
 // no modificar orden de librerias
 #include <WiFi.h>
-#include <WiFiClient.h>
 #include <WebServer.h>
-#include <ESPmDNS.h>
 
-const char *ssid = "";
-const char *password = "";
+const char *ssid = "esumito";
+const char *password = "esumito1234";
+
+IPAddress ip(192,168,4,22);
+IPAddress gateway(192,168,4,9);
+IPAddress subnet(255,255,255,0);
 
 WebServer server(80);
 
@@ -62,6 +65,8 @@ void handleRoot() {
 
     server.send(200, "text/html", webpage);
 }
+
+// definir movimiento
 void stop() {
     Serial.println("stop...");
     digitalWrite(MA1, LOW);
@@ -96,25 +101,9 @@ void setup(void) {
     digitalWrite(MB1, LOW);  
 
     Serial.begin(115200);
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
-    Serial.println("");
-
-    // esperar conexion
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
-
-    Serial.println("");
-    Serial.print("Connected to ");
-    Serial.println(ssid);
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-
-    if (MDNS.begin("esp32")) {
-    Serial.println("MDNS responder started");
-    }
+    
+    WiFi.softAP(ssid, password);
+    WiFi.softAPConfig(ip, gateway, subnet);
 
     server.on("/", handleRoot);
     server.on("/move", move);
@@ -123,9 +112,9 @@ void setup(void) {
 
     server.begin();
     Serial.println("HTTP server started");
+    delay(150);
 }
 
-void loop(void) {
+void loop() {
     server.handleClient();
-    delay(2); // permitir que el cpu realice otras tareas
 }
