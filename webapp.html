@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0"/>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100vh;
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+            }
+            input[type=button] {
+                color: white;
+                background-color: crimson;
+                border: 5px solid black;
+                text-transform: uppercase;
+                aspect-ratio: 1;
+                width: 25%;
+                border-radius: 50%;
+                font-size: 1.8em;
+            }
+            input[type=button]:active {
+                background-color: red;
+            }
+            p {
+                text-transform: uppercase;
+                text-align: center;
+                display: none;
+                color: white;
+            }
+            @media (max-width: 450px) {
+                p { display: block; }
+                input[type=button] { display: none; }
+                body { background-color: black; }
+            }
+        </style>
+    </head>
+    <body>
+        <p>Gira el dispositivo para continuar</p>
+        <input id="move" type="button" value="Avanzar">
+        <input id="spin" type="button" value="Girar">
+        
+        <script>
+            function sendMsg(msg) {
+                const Http = new XMLHttpRequest();
+                Http.open('GET', msg);
+                Http.send();
+                
+                Http.onreadystatechange = (e) => {
+                    console.log(Http.status);
+                    //console.log(msg);
+                    //console.log(Http.ResponseText);
+                }
+            }
+
+            document.querySelectorAll('input').forEach((button) => {
+                button.addEventListener('mouseup', () => {
+                    sendMsg('stop');
+                });
+                button.addEventListener('touchend', () => {
+                    sendMsg('stop');
+                });
+                button.addEventListener('mousedown', () => {
+                    sendMsg(button.id);
+                });
+                button.addEventListener('touchstart', () => {
+                    sendMsg(button.id);
+                });
+            });
+        </script>
+    </body>
+</html>
